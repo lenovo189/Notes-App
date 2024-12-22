@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Notes App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mt-5">Sign Up</h2>
+        <form id="signupForm" class="mt-4">
+            <div class="form-group">
+                <label for="user_name">Full Name</label>
+                <input type="text" class="form-control" id="user_name" placeholder="Enter full name" required>
+            </div>
+            <div class="form-group">
+                <label for="user_email">Email address</label>
+                <input type="email" class="form-control" id="user_email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label for="user_pass">Password</label>
+                <input type="password" class="form-control" id="user_pass" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+        </form>
+        <p class="text-center mt-3">Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6YtA5ekxM0aI2NCjM6UU0acfhiZwhjoU",
+            authDomain: "notes-app-bee9b.firebaseapp.com",
+            databaseURL: "https://notes-app-bee9b-default-rtdb.firebaseio.com",
+            projectId: "notes-app-bee9b",
+            storageBucket: "notes-app-bee9b.firebasestorage.app",
+            messagingSenderId: "294832172036",
+            appId: "1:294832172036:web:a1c2eccbb68d0a32f1d951"
+          };
+        firebase.initializeApp(firebaseConfig);
+
+        // Sign up function
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var name = document.getElementById('user_name').value;
+            var email = document.getElementById('user_email').value;
+            var password = document.getElementById('user_pass').value;
+
+            // Create user with email and password
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then(function(success) {
+                    // Save user info to Realtime Database
+                    var userId = success.user.uid;
+                    firebase.database().ref('Users/' + userId).set({
+                        uname: name,
+                        email: email,
+                        id: userId
+                    }).then(function() {
+                        alert("Account created successfully!");
+                        window.location.href = 'login.html';
+                    });
+                })
+                .catch(function(error) {
+                    alert("Error: " + error.message);
+                });
+        });
+    </script>
+</body>
+</html>

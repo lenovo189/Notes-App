@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        /* Particles container */
+        #particles-js {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Ensure particles are behind the content */
+        }
+
+        /* Sliding animation for the left and right */
+        .content {
+            display: none;
+            position: relative;
+        }
+
+        .slide-left {
+            animation: slideLeft 0.5s forwards;
+        }
+
+        .slide-right {
+            animation: slideRight 0.5s forwards;
+        }
+
+        @keyframes slideLeft {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideRight {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        /* Navbar and scrollspy */
+        nav {
+            margin-bottom: 20px;
+        }
+
+        body {
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .content-section {
+            padding: 50px 0;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Center the navbar links */
+        .navbar-nav {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .log-out-btn {
+            margin-left: auto; /* Align log out button to the right */
+        }
+
+        /* Minimalistic Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px; /* Thinner scrollbar */
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; /* Light track color */
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888; /* Dark thumb color */
+            border-radius: 10px; /* Rounded corners */
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Darker thumb color on hover */
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: transparent; /* Remove corner background */
+        }
+
+        /* Scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Full-screen modal */
+        .modal-dialog {
+            max-width: 90%;
+            margin: 30px auto;
+        }
+
+        .modal-content {
+            height: 100vh;
+        }
+
+        .modal-body {
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Notes App</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item" id="notesLink">
+                    <a class="nav-link" href="#notesSection">Notes</a>
+                </li>
+                <li class="nav-item" id="createLink">
+                    <a class="nav-link" href="#createSection">Create One</a>
+                </li>
+            </ul>
+            <!-- Log out button to the right -->
+            <button onclick="logOut()" class="btn btn-danger log-out-btn">Log Out</button>
+        </div>
+    </nav>
+
+    <!-- Particles Background -->
+    <div id="particles-js"></div>
+
+    <!-- Notes Section -->
+    <div id="notesSection" class="content-section content">
+        <div class="container">
+            <h2 class="text-center mt-5">Your Notes</h2>
+            <div id="notesContainer" class="row mt-4"></div>
+        </div>
+    </div>
+
+    <!-- Create One Section -->
+    <div id="createSection" class="content-section content">
+        <div class="container">
+            <h2 class="text-center mt-5">Create a New Note</h2>
+            <form id="noteForm">
+                <div class="form-group">
+                    <label for="noteTitle">Title</label>
+                    <input type="text" class="form-control" id="noteTitle" placeholder="Enter note title" required>
+                </div>
+                <div class="form-group">
+                    <label for="noteText">Text</label>
+                    <textarea class="form-control" id="noteText" rows="3" placeholder="Write your note..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Add Note</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Full-Screen Note -->
+    <div class="modal fade" id="noteModal" tabindex="-1" role="dialog" aria-labelledby="noteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteModalLabel">Full Note</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h3 id="modalNoteTitle"></h3>
+                    <p id="modalNoteText"></p>
+                    <p class="text-muted" id="modalNoteDate"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase and other scripts -->
+    <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6YtA5ekxM0aI2NCjM6UU0acfhiZwhjoU",
+            authDomain: "notes-app-bee9b.firebaseapp.com",
+            databaseURL: "https://notes-app-bee9b-default-rtdb.firebaseio.com",
+            projectId: "notes-app-bee9b",
+            storageBucket: "notes-app-bee9b.firebasestorage.app",
+            messagingSenderId: "294832172036",
+            appId: "1:294832172036:web:a1c2eccbb68d0a32f1d951"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Get user ID from local storage
+        var userId = localStorage.getItem('ls_id');
+        var notesRef = firebase.database().ref('Notes/' + userId);
+
+        // Display user's notes as cards
+        notesRef.on('child_added', function(snapshot) {
+            var noteData = snapshot.val();
+            var noteDiv = document.createElement('div');
+            noteDiv.classList.add('col-md-4', 'mb-4');
+
+            var noteCard = `
+                <div class="card" data-toggle="modal" data-target="#noteModal" onclick="openNoteModal('${noteData.title || "Untitled"}', '${noteData.text}', '${new Date(noteData.createdAt).toLocaleString()}')">
+                    <div class="card-body">
+                        <h5 class="card-title">${noteData.title || "Untitled"}</h5>
+                        <p class="card-text">${noteData.text.substring(0, 100)}...</p>
+                        <p class="text-muted">Created on: ${new Date(noteData.createdAt).toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+            noteDiv.innerHTML = noteCard;
+            document.getElementById('notesContainer').appendChild(noteDiv);
+        });
+
+        // Add a new note
+        document.getElementById('noteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var noteTitle = document.getElementById('noteTitle').value;
+            var noteText = document.getElementById('noteText').value;
+            if (noteTitle.trim() === "" || noteText.trim() === "") {
+                alert("Please fill in both the title and the note.");
+                return;
+            }
+
+            var noteData = {
+                title: noteTitle,
+                text: noteText,
+                createdAt: new Date().toISOString()
+            };
+
+            notesRef.push(noteData).then(function() {
+                document.getElementById('noteTitle').value = ''; // Clear title input
+                document.getElementById('noteText').value = ''; // Clear note input
+            });
+        });
+
+        // Log out function
+        function logOut() {
+            firebase.auth().signOut().then(function() {
+                localStorage.clear();
+                window.location.href = 'login.html'; // Redirect to login page
+            });
+        }
+
+        // Open Note in Modal
+        function openNoteModal(title, text, date) {
+            document.getElementById('modalNoteTitle').innerText = title;
+            document.getElementById('modalNoteText').innerText = text;
+            document.getElementById('modalNoteDate').innerText = "Created on: " + date;
+        }
+
+        // Slide between sections
+        function slideSection(sectionId, animationType) {
+            // Clear previously active sections
+            document.querySelectorAll('.content').forEach(function(section) {
+                section.classList.remove('active', 'slide-left', 'slide-right');
+            });
+
+            const section = document.getElementById(sectionId);
+            section.classList.add('active', animationType);
+        }
+
+        // Handling button clicks for navigation
+        document.getElementById('notesLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            slideSection('notesSection', 'slide-left');
+        });
+
+        document.getElementById('createLink').addEventListener('click', function(e) {
+            e.preventDefault();
+            slideSection('createSection', 'slide-right');
+        });
+
+        // Initialize the first section to display on load (Create One)
+        slideSection('createSection', 'slide-right');
+
+        // Particles.js setup (Snow-like effect)
+        particlesJS('particles-js', {
+            particles: {
+                number: {
+                    value: 150,  // Increase particle count for snow-like effect
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                shape: {
+                    type: 'circle',
+                    stroke: {
+                        width: 0,
+                        color: '#000'
+                    }
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false,
+                    anim: {
+                        enable: true,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 3,  // Smaller particles for snow effect
+                    random: true,
+                    anim: {
+                        enable: true,
+                        speed: 2,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: false,  // Disable lines between particles
+                },
+                move: {
+                    enable: true,
+                    speed: 1,  // Slower movement for snow effect
+                    direction: 'top',  // Snow particles move upward
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'repulse'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    }
+                }
+            },
+            retina_detect: true
+        });
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

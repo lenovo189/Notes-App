@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In - Notes App</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mt-5">Log In</h2>
+        <form id="loginForm" class="mt-4">
+            <div class="form-group">
+                <label for="u_email">Email address</label>
+                <input type="email" class="form-control" id="u_email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+                <label for="u_pass">Password</label>
+                <input type="password" class="form-control" id="u_pass" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Log In</button>
+        </form>
+        <p class="text-center mt-3">Don't have an account? <a href="signup.html">Sign up here</a></p>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6YtA5ekxM0aI2NCjM6UU0acfhiZwhjoU",
+            authDomain: "notes-app-bee9b.firebaseapp.com",
+            databaseURL: "https://notes-app-bee9b-default-rtdb.firebaseio.com",
+            projectId: "notes-app-bee9b",
+            storageBucket: "notes-app-bee9b.firebasestorage.app",
+            messagingSenderId: "294832172036",
+            appId: "1:294832172036:web:a1c2eccbb68d0a32f1d951"
+          };
+        firebase.initializeApp(firebaseConfig);
+
+        // Log in function
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var email = document.getElementById('u_email').value;
+            var password = document.getElementById('u_pass').value;
+
+            // Sign in the user
+            firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(function(success) {
+                    // Store user data in local storage
+                    var userId = success.user.uid;
+                    firebase.database().ref('Users/' + userId).once('value', function(snapshot) {
+                        localStorage.setItem('ls_name', snapshot.val().uname);
+                        localStorage.setItem('ls_email', snapshot.val().email);
+                        localStorage.setItem('ls_id', snapshot.val().id);
+                        window.location.href = 'notes.html'; // Redirect to notes page
+                    });
+                })
+                .catch(function(error) {
+                    alert("Error: " + error.message);
+                });
+        });
+    </script>
+</body>
+</html>
